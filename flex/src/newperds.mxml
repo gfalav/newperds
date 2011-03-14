@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" xmlns:ns1="comps.*" backgroundGradientAlphas="[1.0, 1.0]" backgroundGradientColors="[#FFFFFF, #FFFFFF]" currentState="Inicial">
+	<mx:states>
+		<mx:State name="Inicial">
+			<mx:RemoveChild target="{infoperds1}"/>
+		</mx:State>
+		<mx:State name="Perds"/>
+	</mx:states>
+
+	<mx:Script>
+		<![CDATA[
+			import Events.LoginEvent;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.controls.Alert;
+			import mx.controls.DateField;
+			
+			
+			
+			private function fhome():void{
+				this.currentState='arranque';
+			}
+			
+			private function flogin(event:LoginEvent):void{
+				this.currentState = 'Perds';
+			}
+			
+			
+		]]>
+	</mx:Script>
+	
+	<mx:VBox>		
+		<mx:HBox left="10" top="10">
+			<ns1:logo />
+			<mx:VBox horizontalAlign="center" paddingTop="10">
+				<mx:Label text="Informe de Pérdidas" fontSize="22" fontWeight="bold" textDecoration="normal" id="label2"/>
+				<mx:Label text="Por Distribuidora y Zona" fontSize="22" fontWeight="bold" textDecoration="normal" id="label1"/>
+			</mx:VBox>
+			<mx:HBox verticalAlign="middle" paddingTop="25" paddingLeft="300">
+				<mx:Button  width="24" height="24" icon="@Embed(source='../icons/gnome-help.png')"/>
+				<mx:Button  width="24" height="24" icon="@Embed(source='../icons/stock_properties.png')"/>
+				<mx:Button  width="24" height="24" icon="@Embed(source='../icons/gtk-home.png')" id="button2" click="fhome()"/>
+			</mx:HBox>
+		</mx:HBox>
+		<mx:HRule height="14" strokeColor="#000000" id="hrule1" width="{application.width}"/>
+		<ns1:infperds id="infoperds1" />	
+	</mx:VBox>
+
+	<ns1:usuarios_cp LoginEvent="flogin(event)"  currentState="login" right="20" top="0"/>
+
+	<mx:transitions>
+        <mx:Transition id="myTransition" fromState="*" toState="*">
+            <mx:Parallel id="t1" targets="{[infoperds1]}">
+                <!-- Define a Move and Resize effect.-->
+                <mx:Move  duration="800"/>
+                <mx:Resize duration="800"/>
+				<mx:Fade id="fadeIn" duration="800" alphaFrom="0.0" alphaTo="1.0"/>
+            </mx:Parallel>
+        </mx:Transition>
+    </mx:transitions>
+</mx:Application>

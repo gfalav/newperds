@@ -1,0 +1,23 @@
+<h1>Listing distribuidoras</h1>
+
+<table>
+  <tr>
+    <th>Distribuidora</th>
+    <th></th>
+    <th></th>
+    <th></th>
+  </tr>
+
+<% @distribuidoras.each do |distribuidora| %>
+  <tr>
+    <td><%= distribuidora.distribuidora %></td>
+    <td><%= link_to 'Show', distribuidora %></td>
+    <td><%= link_to 'Edit', edit_distribuidora_path(distribuidora) %></td>
+    <td><%= link_to 'Destroy', distribuidora, :confirm => 'Are you sure?', :method => :delete %></td>
+  </tr>
+<% end %>
+</table>
+
+<br />
+
+<%= link_to 'New Distribuidora', new_distribuidora_path %>

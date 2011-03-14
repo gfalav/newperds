@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml">
+	<mx:NumberFormatter id="nf" precision="1" useThousandsSeparator="true"/>
+	<mx:Label text="{nf.format(data.perdx100an)+'%'}"  textAlign="right" width="70" color="#09FDA4"/>
+</mx:Canvas>

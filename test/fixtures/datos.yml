@@ -1,0 +1,15 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+  distribuidora_id: 1
+  tdato: 1
+  periodo: 1
+  zona_id: 1
+  energia: 9.99
+
+two:
+  distribuidora_id: 1
+  tdato: 1
+  periodo: 1
+  zona_id: 1
+  energia: 9.99

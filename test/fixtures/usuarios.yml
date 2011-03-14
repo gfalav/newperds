@@ -1,0 +1,15 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+  usuario: MyString
+  password: MyString
+  nombre: MyString
+  perfil: MyString
+  fvctopass: 2010-11-09
+
+two:
+  usuario: MyString
+  password: MyString
+  nombre: MyString
+  perfil: MyString
+  fvctopass: 2010-11-09

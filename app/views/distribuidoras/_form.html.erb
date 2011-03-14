@@ -1,0 +1,21 @@
+<%= form_for(@distribuidora) do |f| %>
+  <% if @distribuidora.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@distribuidora.errors.count, "error") %> prohibited this distribuidora from being saved:</h2>
+
+      <ul>
+      <% @distribuidora.errors.full_messages.each do |msg| %>
+        <li><%= msg %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= f.label :distribuidora %><br />
+    <%= f.text_field :distribuidora %>
+  </div>
+  <div class="actions">
+    <%= f.submit %>
+  </div>
+<% end %>

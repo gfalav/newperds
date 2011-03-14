@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" creationComplete="finit()">
+
+	<mx:Script>
+		<![CDATA[
+			import vo.Datoxcargar;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.collections.ArrayCollection;
+			import vo.Distribuidora;
+			import mx.controls.Alert;
+			
+			[Bindable] public var datosarr:ArrayCollection = new ArrayCollection;
+			[Bindable] private var distribuidorasarr:ArrayCollection = new ArrayCollection;
+			private var enviado:Number=0;
+			
+			private function fabmsend():void{
+				var o:Object = new Object;
+				o.datos = datosarr;
+				o.distribuidora_id = distribuidorasarr.getItemAt(distribuidora_cb.selectedIndex).id;
+				o.periodo = anio_ns.value*100+mes_ns.value;
+				save.send(o);
+			}
+			
+			private function fsend():void{
+				if (enviado ==0 && distribuidora_cb.selectedIndex > 0){
+					var o:Object = new Object;
+					o.distribuidora_id = distribuidorasarr.getItemAt(distribuidora_cb.selectedIndex).id;
+					o.periodo = anio_ns.value*100+mes_ns.value;
+					getactualiza.send(o);
+					enviado =1;
+				} else {
+					
+				}
+			}
+			
+			private function fsendres(event:ResultEvent):void{
+				enviado = 0;
+				datosarr.removeAll();
+				for each (var o:Object in event.result.init.zonas.zona){
+					datosarr.addItem(new Datoxcargar(o.zona_id,o.zona,o.MEM,o.TER,o.GEN,o.DIS,o.GMA,o.GME,o.PRO,o.REC));				
+				}
+			}
+
+			private function finit():void{
+				anio_ns.value = new Date().fullYear;
+				mes_ns.value = new Date().month;
+				init.send();				
+			} 
+			
+			private function finitres(event:ResultEvent):void{
+				distribuidorasarr.removeAll();
+				distribuidorasarr.addItem(new Distribuidora(0,'Sel Distribuidora'));
+				for each (var d:Object in event.result.init.distribuidoras.distribuidora){
+					distribuidorasarr.addItem(new Distribuidora(d.id, d.distribuidora));
+				}				
+			}
+			
+			private function ffault(event:FaultEvent):void{
+				Alert.show(event.fault.faultString,'Error: RPC services Call');
+			}
+			
+			
+		]]>
+	</mx:Script>
+	<mx:Form x="10" y="10">
+		<mx:FormItem label="Distribuidora" direction="horizontal">
+			<mx:ComboBox id="distribuidora_cb" dataProvider="{distribuidorasarr}" labelField="distribuidora" width="200" change="fsend()"></mx:ComboBox>
+			<mx:Label text="Periodo - Año"  width="200" textAlign="right"/>
+			<mx:NumericStepper id="anio_ns"  minimum="1999" maximum="2015" stepSize="1" change="fsend()"/>
+			<mx:Label text="Mes"  width="60" textAlign="right"/>
+			<mx:NumericStepper id="mes_ns"  minimum="1" maximum="12" stepSize="1" change="fsend()"/>
+		</mx:FormItem>
+		<mx:DataGrid id="dgdatosxcargar" dataProvider="{datosarr}" height="193" editable="true">
+			<mx:columns>
+				<mx:DataGridColumn headerText="Zona ID" dataField="zona_id" width="60"/>
+				<mx:DataGridColumn headerText="Zona" dataField="zona"/>
+				<mx:DataGridColumn headerText="MEM" dataField="mem" width="72" itemRenderer="rends.mem_rd"/>
+				<mx:DataGridColumn headerText="Terceros" dataField="ter" width="72" itemRenderer="rends.ter_rd"/>
+				<mx:DataGridColumn headerText="Generación" dataField="gen" width="72" itemRenderer="rends.gen_rd"/>
+				<mx:DataGridColumn headerText="Distro" dataField="dis" width="72" itemRenderer="rends.dis_rd"/>
+				<mx:DataGridColumn headerText="Guma" dataField="gma" width="72" itemRenderer="rends.guma_rd"/>
+				<mx:DataGridColumn headerText="Gume" dataField="gme" width="72" itemRenderer="rends.gume_rd"/>
+				<mx:DataGridColumn headerText="Recuperos" dataField="rec" width="72" itemRenderer="rends.rec_rd"/>
+				<mx:DataGridColumn headerText="Cons Prop" dataField="pro" width="72" itemRenderer="rends.aut_rd"/>
+			</mx:columns>
+		</mx:DataGrid>
+		<mx:HBox width="100%" horizontalAlign="right">
+			<mx:Button label="Guarda Cambios" click="fabmsend()"/>
+		</mx:HBox>
+	</mx:Form>
+
+	<mx:HTTPService id="init" url="../datos/init.xml" method="GET" result="finitres(event)" fault="ffault(event)" />
+	<mx:HTTPService id="save" url="../datos/save.xml" method="GET" result="fsendres(event)" fault="ffault(event)" />
+	<mx:HTTPService id="getactualiza" url="../datos/getactualiza.xml" method="GET" result="fsendres(event)" fault="ffault(event)" />
+	
+</mx:Canvas>

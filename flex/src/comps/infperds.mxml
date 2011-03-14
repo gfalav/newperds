@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" creationComplete="finit()">
+
+	<mx:Script>
+		<![CDATA[
+			import vo.Dato;
+			import vo.Zona;
+			import vo.Distribuidora;
+			import mx.collections.ArrayCollection;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.events.FaultEvent;
+			import mx.controls.Alert;
+			
+			[Bindable] private var distribuidorasarr:ArrayCollection = new ArrayCollection;
+			[Bindable] private var zonasarr:ArrayCollection = new ArrayCollection;
+			[Bindable] private var datosarr:ArrayCollection = new ArrayCollection;
+			private var enviado:Number=0;
+			
+			private function fchvarios():void{
+				if (enviado ==0) {
+					enviado=1;
+					fsend();
+				} else {
+					enviado = 2;
+				}
+				
+			}
+			
+			private function fsend():void{
+				if (zona_cb.selectedIndex > 0) {
+					var o:Object = new Object;
+					o.distribuidora_id = distribuidorasarr.getItemAt(distribuidora_cb.selectedIndex).id;
+					o.zona_id = zonasarr.getItemAt(zona_cb.selectedIndex).id;
+					o.perinic = (anioinic.value-1) * 100 + mesinic.value;
+					o.perfin = aniofin.value * 100 + mesfin.value;
+					getperdidas.send(o);
+				}
+			}
+			
+			private function fsendres(event:ResultEvent):void{
+				datosarr.filterFunction= null;
+				datosarr.refresh();
+				datosarr.removeAll();
+				for each (var o:Object in event.result.init.periodos.periodo){
+					datosarr.addItem(new Dato(Number(o.distribuidora_id),
+											  Number(o.zona_id),
+											  Number(o.periodo),
+											  Number(o.MEM),
+											  Number(o.TER),
+											  Number(o.GEN),
+											  Number(o.MEM) + Number(o.GEN) + Number(o.TER),
+											  Number(o.DIS),
+											  Number(o.GMA),
+											  Number(o.GME),
+											  Number(o.REC),
+											  Number(o.PRO),
+											  Number(o.DIS) + Number(o.GMA) + Number(o.GME) + Number(o.REC) + Number(o.PRO),
+											  0,0,
+											  Number(o.MEM) + Number(o.GEN) + Number(o.TER) - (Number(o.DIS) + Number(o.GMA) + Number(o.GME) + Number(o.REC) + Number(o.PRO)),
+											  0,
+											  (Number(o.MEM) + Number(o.GEN) + Number(o.TER) - (Number(o.DIS) + Number(o.GMA) + Number(o.GME) + Number(o.REC) + Number(o.PRO)))/(Number(o.MEM) + Number(o.GEN) + Number(o.TER))*100,
+											  0));
+				}
+				var n:Number=0;
+				var i:Number;
+				
+				for each (var d:Dato in datosarr){
+					var totian:Number =0;
+					var totean:Number =0;
+					if (n>11){
+						for (i=0;i<12;i++){
+							totian = totian + datosarr.getItemAt(n+i-11).toting;
+							totean = totean + datosarr.getItemAt(n+i-11).totegr; 
+						}
+						datosarr.getItemAt(n).totingan = totian;
+						datosarr.getItemAt(n).totegran = totean;
+						datosarr.getItemAt(n).perdan = totian-totean;
+						datosarr.getItemAt(n).perdx100an = Number((totian-totean)/totian*100).toFixed(2);
+					}
+					n = n+1;
+				}
+				datosarr.filterFunction = filterperiodo;
+				datosarr.refresh();
+				
+				if (enviado == 1) {
+					enviado = 0;
+				} else {
+					enviado = 1;
+					fsend();
+				}
+				
+			}
+			
+			private function finit():void{
+				aniofin.value = new Date().fullYear;
+				mesfin.value = new Date().month;
+				anioinic.value = aniofin.value-1;
+				mesinic.value = mesfin.value;
+				init.send();
+			}
+			
+			private function finitres(event:ResultEvent):void{
+				distribuidorasarr.removeAll();
+				distribuidorasarr.addItem(new Distribuidora(0,'Sel Distribuidora'));
+				for each (var d:Object in event.result.init.distribuidoras.distribuidora){
+					distribuidorasarr.addItem(new Distribuidora(d.id, d.distribuidora));
+				}
+				zonasarr.removeAll();
+				zonasarr.addItem(new Zona(0,'Sel Zona',0));
+				for each (var z:Object in event.result.init.zonas.zona){
+					zonasarr.addItem(new Zona(z.id,z.zona,z.distribuidora_id));
+				}
+			}
+
+			private function fchdistr():void{
+				zonasarr.filterFunction = filtrozona;
+				zonasarr.refresh();
+				zona_cb.selectedIndex=0;
+			}
+			
+			private function filtrozona(item:Object):Boolean{
+				if (item.distribuidora_id == distribuidorasarr.getItemAt(distribuidora_cb.selectedIndex).id || item.distribuidora_id ==0){
+					return true;
+				} else {
+					return false;
+				}
+			}
+			
+			private function filterperiodo(item:Object):Boolean{
+				if (item.periodo >= anioinic.value*100+mesinic.value){
+					return true;
+				} else {
+					return false;
+				}
+			}
+			
+			private function ffault(event:FaultEvent):void{
+				Alert.show(event.fault.faultString,'Error: RPC services Call');
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:Form x="10" y="10">
+		<mx:FormItem label="Distribuidora" direction="horizontal">
+			<mx:ComboBox id="distribuidora_cb" dataProvider="{distribuidorasarr}" labelField="distribuidora" width="200" change="fchdistr()"></mx:ComboBox>
+			<mx:Label text="Periodo Inicial - Año"  width="200" textAlign="right"/>
+			<mx:NumericStepper id="anioinic"  minimum="1999" maximum="2015" stepSize="1" change="fchvarios()"/>
+			<mx:Label text="Mes"  width="60" textAlign="right"/>
+			<mx:NumericStepper id="mesinic"  minimum="1" maximum="12" stepSize="1" change="fchvarios()"/>
+		</mx:FormItem>
+		<mx:FormItem label="Area" direction="horizontal">
+			<mx:ComboBox id="zona_cb" dataProvider="{zonasarr}" labelField="zona" width="200" change="fchvarios()"></mx:ComboBox>
+			<mx:Label text="Periodo Final - Año"  width="200" textAlign="right"/>
+			<mx:NumericStepper id="aniofin"  minimum="1999" maximum="2015" stepSize="1" change="fchvarios()"/>
+			<mx:Label text="Mes"  width="60" textAlign="right"/>
+			<mx:NumericStepper id="mesfin"  minimum="1" maximum="12" stepSize="1" change="fchvarios()"/>
+		</mx:FormItem>
+		<mx:DataGrid id="dgperdidas" dataProvider="{datosarr}" height="311">
+			<mx:columns>
+				<mx:DataGridColumn headerText="Periodo" dataField="periodo" width="72" itemRenderer="rends.periodo_rd"/>
+				<mx:DataGridColumn headerText="MEM" dataField="mem" width="72" itemRenderer="rends.mem_rd"/>
+				<mx:DataGridColumn headerText="Terceros" dataField="ter" width="72" itemRenderer="rends.ter_rd"/>
+				<mx:DataGridColumn headerText="Generación" dataField="gen" width="72" itemRenderer="rends.gen_rd"/>
+				<mx:DataGridColumn headerText="Total Ing" dataField="toting" width="72" itemRenderer="rends.toti_rd"/>
+				<mx:DataGridColumn headerText="Distro" dataField="dis" width="72" itemRenderer="rends.dis_rd"/>
+				<mx:DataGridColumn headerText="Guma" dataField="gma" width="72" itemRenderer="rends.guma_rd"/>
+				<mx:DataGridColumn headerText="Gume" dataField="gme" width="72" itemRenderer="rends.gume_rd"/>
+				<mx:DataGridColumn headerText="Recuperos" dataField="rec" width="72" itemRenderer="rends.rec_rd"/>
+				<mx:DataGridColumn headerText="Cons Prop" dataField="pro" width="72" itemRenderer="rends.aut_rd"/>
+				<mx:DataGridColumn headerText="Total Egr" dataField="totegr" width="72" itemRenderer="rends.tote_rd"/>
+				<mx:DataGridColumn headerText="Pérd mes" dataField="perd" width="72" itemRenderer="rends.perd_rd"/>
+				<mx:DataGridColumn headerText="Pérd %" dataField="perdx100" width="72" itemRenderer="rends.perdsx100_rd"/>
+				<mx:DataGridColumn headerText="Total Ing An" dataField="totingan" width="72" itemRenderer="rends.totia_rd"/>
+				<mx:DataGridColumn headerText="Total Egr An" dataField="totegran" width="72" itemRenderer="rends.totea_rd"/>
+				<mx:DataGridColumn headerText="Perd % An" dataField="perdx100an" width="72" itemRenderer="rends.perdsx100a_rd"/>
+			</mx:columns>
+		</mx:DataGrid>
+		<mx:HBox>
+			<mx:LineChart id="linechart1" dataProvider="{datosarr}" showDataTips="true" height="178" width="1021">
+				<mx:horizontalAxis>
+					<mx:CategoryAxis dataProvider="{datosarr}" categoryField="periodo" />
+				</mx:horizontalAxis>
+				<mx:series>
+					<mx:LineSeries displayName="Pérdidas" yField="perdx100" form="curve" />
+					<mx:LineSeries displayName="Pérd anualizadas" yField="perdx100an" form="curve"/>
+				</mx:series>
+			</mx:LineChart>
+			<mx:Legend dataProvider="{linechart1}" direction="vertical" width="100"/>
+		</mx:HBox>
+	</mx:Form>
+
+	<mx:HTTPService id="init" url="../datos/init.xml" method="GET" result="finitres(event)" fault="ffault(event)" showBusyCursor="true" />
+	<mx:HTTPService id="getperdidas" url="../datos/getperdidas.xml" method="GET" result="fsendres(event)" fault="ffault(event)" showBusyCursor="true" />
+	
+</mx:Canvas>

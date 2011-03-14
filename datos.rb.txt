@@ -1,0 +1,27 @@
+
+	#obtiene datos de perdidas.
+	#debe venir params['distribuidora_id','perinic','perfin','zona_id']
+	def getperdidas
+
+		debugger
+		perdsarr = Array.new
+		tmphash = Hash.new
+
+		@periodos = Dato.where(["distribuidora_id = ? and periodo >= ? and periodo <= ?",params['distribuidora'],params['perinic'],params['perfin']]).select('distinct periodo').order('periodo')
+
+		@periodos.each { |p|
+			tmphash['MEM']= Dato.where(["tdato_id = 7 and distribuidora_id = ? and periodo = ? and zona_id = ?",params['distribuidora_id'],p.periodo,params['zona_id']])[0]
+			tmphash['TER']= Dato.where(["tdato_id = 8 and distribuidora_id = ? and periodo = ? and zona_id = ?",params['distribuidora_id'],p.periodo,params['zona_id']])[0]
+			tmphash['GEN']= Dato.where(["tdato_id = 3 and distribuidora_id = ? and periodo = ? and zona_id = ?",params['distribuidora_id'],p.periodo,params['zona_id']])[0]
+			tmphash['DIS']= Dato.where(["tdato_id = 2 and distribuidora_id = ? and periodo = ? and zona_id = ?",params['distribuidora_id'],p.periodo,params['zona_id']])[0]
+			tmphash['GMA']= Dato.where(["tdato_id = 4 and distribuidora_id = ? and periodo = ? and zona_id = ?",params['distribuidora_id'],p.periodo,params['zona_id']])[0]
+			tmphash['GME']= Dato.where(["tdato_id = 5 and distribuidora_id = ? and periodo = ? and zona_id = ?",params['distribuidora_id'],p.periodo,params['zona_id']])[0]
+			tmphash['PRO']= Dato.where(["tdato_id = 1 and distribuidora_id = ? and periodo = ? and zona_id = ?",params['distribuidora_id'],p.periodo,params['zona_id']])[0]
+			tmphash['REC']= Dato.where(["tdato_id = 9 and distribuidora_id = ? and periodo = ? and zona_id = ?",params['distribuidora_id'],p.periodo,params['zona_id']])[0]
+
+			perdsarr << tmphash
+		}
+
+		render :xml=> perdsarr
+
+	end
